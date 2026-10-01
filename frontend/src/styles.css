@@ -197,3 +197,30 @@ h1 {
   font-size: 13px;
   opacity: 0.8;
 }
+
+
+.detections-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #252a31;
+}
+
+.detections-list {
+  display: grid;
+  gap: 8px;
+}
+
+.detection-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #252a31;
+  border-radius: 10px;
+  background: #0d1014;
+  font-size: 14px;
+}
+
+.detection-item span:last-child {
+  opacity: 0.6;
+}
