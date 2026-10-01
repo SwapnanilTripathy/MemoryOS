@@ -1,6 +1,6 @@
 # MEMORYOS Backend
 
-Minimal backend for the MEMORYOS camera pipeline.
+Backend for the MEMORYOS camera and object-detection pipeline.
 
 ## Run
 
@@ -8,7 +8,9 @@ From the repository root:
 
 ```bash
 cd backend
-python server.py
+pip install -r requirements.txt
+cd ..
+python backend/server.py
 ```
 
 The API runs at:
@@ -29,4 +31,12 @@ Request body:
 }
 ```
 
-For now the backend only confirms that the image was received. AI processing will be added in later phases.
+The backend now:
+1. Receives the captured camera frame.
+2. Decodes the image.
+3. Runs lightweight YOLO object detection.
+4. Returns detected object labels, confidence scores, and bounding boxes.
+
+The first detection run downloads the YOLO model automatically.
+
+AI memory, object identity, spatial memory, and temporal memory will be added in later phases.
