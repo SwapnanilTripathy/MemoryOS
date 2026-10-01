@@ -107,7 +107,7 @@ function Camera() {
     <section className="camera-panel">
       <div className="camera-header">
         <div>
-          <p className="camera-label">PHASE 2.6</p>
+          <p className="camera-label">PHASE 4.2</p>
           <h2>Camera & Memory Frame</h2>
         </div>
         <span className="camera-status">{status}</span>
@@ -153,11 +153,12 @@ function Camera() {
 
               const width = image.naturalWidth || 1;
               const height = image.naturalHeight || 1;
+              const objectId = detection.object_id || "unassigned";
 
               return (
                 <div
                   className="bounding-box"
-                  key={`${detection.label}-box-${index}`}
+                  key={`${objectId}-box-${index}`}
                   style={{
                     left: `${(x1 / width) * 100}%`,
                     top: `${(y1 / height) * 100}%`,
@@ -166,7 +167,8 @@ function Camera() {
                   }}
                 >
                   <span>
-                    {detection.label} {Math.round(detection.confidence * 100)}%
+                    {objectId} · {detection.label} ·{" "}
+                    {Math.round(detection.confidence * 100)}%
                   </span>
                 </div>
               );
@@ -181,14 +183,39 @@ function Camera() {
 
           {detections.length > 0 && (
             <div className="detections-panel">
-              <p className="capture-title">Detected Objects</p>
+              <p className="capture-title">Detected Objects & Identity</p>
               <div className="detections-list">
-                {detections.map((detection, index) => (
-                  <div className="detection-item" key={`${detection.label}-${index}`}>
-                    <span>{detection.label}</span>
-                    <span>{Math.round(detection.confidence * 100)}%</span>
-                  </div>
-                ))}
+                {detections.map((detection, index) => {
+                  const objectId = detection.object_id || "unassigned";
+                  const isPreviouslySeen = detection.identity_match === true;
+
+                  return (
+                    <div
+                      className="detection-item"
+                      key={`${objectId}-${index}`}
+                    >
+                      <div className="detection-info">
+                        <strong>{detection.label}</strong>
+                        <span className="object-id">ID: {objectId}</span>
+                      </div>
+
+                      <div className="detection-meta">
+                        <span>
+                          {Math.round(detection.confidence * 100)}%
+                        </span>
+                        <span
+                          className={
+                            isPreviouslySeen
+                              ? "identity-status matched"
+                              : "identity-status new"
+                          }
+                        >
+                          {isPreviouslySeen ? "Previously seen" : "New object"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
