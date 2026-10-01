@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+const BACKEND_URL = "http://localhost:8000";
+
 function Camera() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -7,6 +9,7 @@ function Camera() {
   const [status, setStatus] = useState("Camera is off.");
   const [error, setError] = useState("");
   const [capturedImage, setCapturedImage] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState("");
 
   useEffect(() => {
     return () => {
@@ -16,6 +19,7 @@ function Camera() {
 
   async function enableCamera() {
     setError("");
+    setUploadStatus("");
     setStatus("Requesting camera access...");
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -59,15 +63,49 @@ function Camera() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     setCapturedImage(canvas.toDataURL("image/jpeg", 0.9));
+    setUploadStatus("");
     setError("");
+  }
+
+  async function sendImageToBackend() {
+    if (!capturedImage) {
+      setError("Capture an image before sending it.");
+      return;
+    }
+
+    setError("");
+    setUploadStatus("Sending image to backend...");
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/memory-frame`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image: capturedImage }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Backend rejected the image.");
+      }
+
+      setUploadStatus("✓ Image received by MEMORYOS backend.");
+    } catch (err) {
+      setUploadStatus("");
+      setError(
+        "Could not reach the backend. Make sure server.py is running on port 8000."
+      );
+    }
   }
 
   return (
     <section className="camera-panel">
       <div className="camera-header">
         <div>
-          <p className="camera-label">PHASE 2.4</p>
-          <h2>Camera & Capture</h2>
+          <p className="camera-label">PHASE 2.6</p>
+          <h2>Camera & Memory Frame</h2>
         </div>
         <span className="camera-status">{status}</span>
       </div>
@@ -104,6 +142,12 @@ function Camera() {
         <div className="capture-preview">
           <p className="capture-title">Captured Memory Frame</p>
           <img src={capturedImage} alt="Captured camera frame" />
+
+          <button className="camera-button send-button" onClick={sendImageToBackend}>
+            Send to MemoryOS
+          </button>
+
+          {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
         </div>
       )}
     </section>
