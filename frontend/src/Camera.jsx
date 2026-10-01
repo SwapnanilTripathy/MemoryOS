@@ -144,7 +144,34 @@ function Camera() {
       {capturedImage && (
         <div className="capture-preview">
           <p className="capture-title">Captured Memory Frame</p>
-          <img src={capturedImage} alt="Captured camera frame" />
+          <div className="annotated-image">
+            <img src={capturedImage} alt="Captured camera frame" />
+            {detections.map((detection, index) => {
+              const [x1, y1, x2, y2] = detection.box || [];
+              const image = new Image();
+              image.src = capturedImage;
+
+              const width = image.naturalWidth || 1;
+              const height = image.naturalHeight || 1;
+
+              return (
+                <div
+                  className="bounding-box"
+                  key={`${detection.label}-box-${index}`}
+                  style={{
+                    left: `${(x1 / width) * 100}%`,
+                    top: `${(y1 / height) * 100}%`,
+                    width: `${((x2 - x1) / width) * 100}%`,
+                    height: `${((y2 - y1) / height) * 100}%`,
+                  }}
+                >
+                  <span>
+                    {detection.label} {Math.round(detection.confidence * 100)}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
           <button className="camera-button send-button" onClick={sendImageToBackend}>
             Send to MemoryOS
