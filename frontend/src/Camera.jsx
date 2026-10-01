@@ -10,6 +10,7 @@ function Camera() {
   const [error, setError] = useState("");
   const [capturedImage, setCapturedImage] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [detections, setDetections] = useState([]);
 
   useEffect(() => {
     return () => {
@@ -64,6 +65,7 @@ function Camera() {
 
     setCapturedImage(canvas.toDataURL("image/jpeg", 0.9));
     setUploadStatus("");
+    setDetections([]);
     setError("");
   }
 
@@ -91,7 +93,8 @@ function Camera() {
         throw new Error(data.error || "Backend rejected the image.");
       }
 
-      setUploadStatus("✓ Image received by MEMORYOS backend.");
+      setDetections(data.detections || []);
+      setUploadStatus(`✓ Detected ${data.detections?.length || 0} object(s).`);
     } catch (err) {
       setUploadStatus("");
       setError(
@@ -148,6 +151,20 @@ function Camera() {
           </button>
 
           {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
+
+          {detections.length > 0 && (
+            <div className="detections-panel">
+              <p className="capture-title">Detected Objects</p>
+              <div className="detections-list">
+                {detections.map((detection, index) => (
+                  <div className="detection-item" key={`${detection.label}-${index}`}>
+                    <span>{detection.label}</span>
+                    <span>{Math.round(detection.confidence * 100)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>
