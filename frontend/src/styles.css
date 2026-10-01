@@ -184,3 +184,16 @@ h1 {
   border-radius: 14px;
   border: 1px solid #252a31;
 }
+
+
+.send-button {
+  margin-top: 12px;
+  background: #f5f7fa;
+  color: #0b0d10;
+}
+
+.upload-status {
+  margin: 10px 0 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
