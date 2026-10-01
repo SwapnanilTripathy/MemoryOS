@@ -1,3 +1,5 @@
+import Camera from "./Camera";
+
 function App() {
   return (
     <main className="app">
@@ -5,7 +7,9 @@ function App() {
         <p className="eyebrow">PHYSICAL MEMORY SYSTEM</p>
         <h1>MEMORYOS</h1>
         <p className="tagline">Give an AI a physical memory.</p>
-        <p className="status">Phase 2.2 — Frontend foundation ready.</p>
+        <p className="status">Phase 2.3 — Live camera prototype.</p>
+
+        <Camera />
       </section>
     </main>
   );
