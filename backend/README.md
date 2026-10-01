@@ -35,7 +35,7 @@ The backend now:
 1. Receives the captured camera frame.
 2. Decodes the image.
 3. Runs lightweight YOLO object detection.
-4. Returns detected object labels, confidence scores, and bounding boxes.
+4. Creates a visual fingerprint for each detected object and assigns a persistent object ID.
 
 The first detection run downloads the YOLO model automatically.
 
