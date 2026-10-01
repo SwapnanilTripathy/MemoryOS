@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from "react";
 function Camera() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const canvasRef = useRef(null);
   const [status, setStatus] = useState("Camera is off.");
   const [error, setError] = useState("");
+  const [capturedImage, setCapturedImage] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -41,12 +43,31 @@ function Camera() {
     }
   }
 
+  function captureImage() {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas || !streamRef.current) {
+      setError("Enable the camera before capturing an image.");
+      return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    setCapturedImage(canvas.toDataURL("image/jpeg", 0.9));
+    setError("");
+  }
+
   return (
     <section className="camera-panel">
       <div className="camera-header">
         <div>
-          <p className="camera-label">PHASE 2.3</p>
-          <h2>Live Camera</h2>
+          <p className="camera-label">PHASE 2.4</p>
+          <h2>Camera & Capture</h2>
         </div>
         <span className="camera-status">{status}</span>
       </div>
@@ -63,9 +84,28 @@ function Camera() {
 
       {error && <p className="camera-error">{error}</p>}
 
-      <button className="camera-button" onClick={enableCamera}>
-        Enable Camera
-      </button>
+      <div className="camera-actions">
+        <button className="camera-button" onClick={enableCamera}>
+          Enable Camera
+        </button>
+
+        <button
+          className="camera-button capture-button"
+          onClick={captureImage}
+          disabled={!streamRef.current}
+        >
+          Capture Image
+        </button>
+      </div>
+
+      <canvas ref={canvasRef} hidden />
+
+      {capturedImage && (
+        <div className="capture-preview">
+          <p className="capture-title">Captured Memory Frame</p>
+          <img src={capturedImage} alt="Captured camera frame" />
+        </div>
+      )}
     </section>
   );
 }
