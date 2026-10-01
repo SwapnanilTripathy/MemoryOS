@@ -148,3 +148,39 @@ h1 {
 .camera-button:hover {
   opacity: 0.9;
 }
+
+
+.camera-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.camera-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.capture-button {
+  background: #2a3038;
+  color: #f5f7fa;
+}
+
+.capture-preview {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #252a31;
+}
+
+.capture-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+.capture-preview img {
+  width: 100%;
+  display: block;
+  border-radius: 14px;
+  border: 1px solid #252a31;
+}
