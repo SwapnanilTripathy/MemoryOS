@@ -6,6 +6,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from PIL import Image
 
 from vision.detector import detect_objects
+from vision.identity import identify_objects
 
 HOST = "0.0.0.0"
 PORT = 8000
@@ -37,10 +38,7 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             length = int(self.headers.get("Content-Length", 0))
-            payload = json.loads(
-                self.rfile.read(length).decode("utf-8")
-            )
-
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
             image_data = payload.get("image")
 
             if not image_data:
@@ -55,10 +53,11 @@ class Handler(BaseHTTPRequestHandler):
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
             detections = detect_objects(image)
+            detections = identify_objects(image, detections)
 
             self._send_json(200, {
                 "ok": True,
-                "message": "Memory frame received and analyzed.",
+                "message": "Memory frame received, analyzed, and identified.",
                 "imageReceived": True,
                 "detections": detections,
             })
@@ -70,10 +69,10 @@ class Handler(BaseHTTPRequestHandler):
             })
 
         except Exception as exc:
-            print(f"Object detection error: {exc}")
+            print(f"Memory frame processing error: {exc}")
             self._send_json(500, {
                 "ok": False,
-                "error": "Object detection failed",
+                "error": "Memory frame processing failed",
             })
 
 
