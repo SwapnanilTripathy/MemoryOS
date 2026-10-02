@@ -5,8 +5,10 @@ import numpy as np
 from PIL import Image
 
 IDENTITY_FILE = Path(__file__).resolve().parent.parent / "database" / "object_identities.json"
-HASH_SIZE = 16
-MATCH_THRESHOLD = 55
+
+GRAY_SIZE = 24
+COLOR_BINS = 8
+MATCH_THRESHOLD = 0.34
 
 
 def _load_identities():
@@ -25,15 +27,41 @@ def _save_identities(identities):
 
 
 def _fingerprint(image):
-    small = image.resize((HASH_SIZE, HASH_SIZE)).convert("L")
-    pixels = np.asarray(small, dtype=np.float32)
-    mean = pixels.mean()
-    bits = (pixels >= mean).flatten()
-    return "".join("1" if bit else "0" for bit in bits)
+    rgb = image.convert("RGB")
+    small = rgb.resize((GRAY_SIZE, GRAY_SIZE))
+    gray = np.asarray(small.convert("L"), dtype=np.float32) / 255.0
+    gray = (gray - gray.mean()) / (gray.std() + 1e-6)
+
+    hsv = np.asarray(small.convert("HSV"), dtype=np.uint8)
+    color_features = []
+
+    for channel in range(3):
+        histogram, _ = np.histogram(
+            hsv[:, :, channel],
+            bins=COLOR_BINS,
+            range=(0, 256),
+            density=True,
+        )
+        histogram = histogram.astype(np.float32)
+        histogram /= histogram.sum() + 1e-6
+        color_features.extend(histogram.tolist())
+
+    return {
+        "gray": gray.flatten().tolist(),
+        "color": color_features,
+    }
 
 
 def _distance(first, second):
-    return sum(a != b for a, b in zip(first, second))
+    first_gray = np.asarray(first["gray"], dtype=np.float32)
+    second_gray = np.asarray(second["gray"], dtype=np.float32)
+    gray_distance = float(np.mean(np.abs(first_gray - second_gray)))
+
+    first_color = np.asarray(first["color"], dtype=np.float32)
+    second_color = np.asarray(second["color"], dtype=np.float32)
+    color_distance = float(np.mean(np.abs(first_color - second_color)))
+
+    return (0.7 * gray_distance) + (0.3 * color_distance)
 
 
 def identify_objects(image, detections):
@@ -42,7 +70,18 @@ def identify_objects(image, detections):
 
     for detection in detections:
         x1, y1, x2, y2 = map(int, detection["box"])
-        crop = image.crop((x1, y1, x2, y2))
+
+        width = x2 - x1
+        height = y2 - y1
+        pad_x = int(width * 0.08)
+        pad_y = int(height * 0.08)
+
+        crop = image.crop((
+            max(0, x1 - pad_x),
+            max(0, y1 - pad_y),
+            min(image.width, x2 + pad_x),
+            min(image.height, y2 + pad_y),
+        ))
 
         if crop.width < 2 or crop.height < 2:
             continue
@@ -51,7 +90,9 @@ def identify_objects(image, detections):
         best = None
 
         for identity in identities:
-            if identity["label"] != detection["label"]:
+            if identity.get("label") != detection["label"]:
+                continue
+            if not isinstance(identity.get("fingerprint"), dict):
                 continue
 
             distance = _distance(fingerprint, identity["fingerprint"])
