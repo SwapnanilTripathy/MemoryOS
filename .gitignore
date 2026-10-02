@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# Generated runtime files
+database/object_identities.json
+yolo11n.pt
