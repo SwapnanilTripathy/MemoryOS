@@ -29,6 +29,7 @@ def _save_identities(identities):
 def _fingerprint(image):
     rgb = image.convert("RGB")
     small = rgb.resize((GRAY_SIZE, GRAY_SIZE))
+
     gray = np.asarray(small.convert("L"), dtype=np.float32) / 255.0
     gray = (gray - gray.mean()) / (gray.std() + 1e-6)
 
@@ -65,14 +66,24 @@ def _distance(first, second):
 
 
 def identify_objects(image, detections):
+    """
+    Assign stable object IDs.
+
+    For the MVP movement demo, when exactly one known identity exists for a
+    detected label, retain that ID across frames. This avoids treating normal
+    pose/crop changes as a brand-new object. When multiple same-label objects
+    exist, visual fingerprints are used to choose the closest identity.
+    """
     identities = _load_identities()
     next_number = len(identities) + 1
 
     for detection in detections:
-        x1, y1, x2, y2 = map(int, detection["box"])
+        label = detection["label"]
 
+        x1, y1, x2, y2 = map(int, detection["box"])
         width = x2 - x1
         height = y2 - y1
+
         pad_x = int(width * 0.08)
         pad_y = int(height * 0.08)
 
@@ -87,31 +98,49 @@ def identify_objects(image, detections):
             continue
 
         fingerprint = _fingerprint(crop)
-        best = None
+        candidates = [
+            identity
+            for identity in identities
+            if identity.get("label") == label
+        ]
 
-        for identity in identities:
-            if identity.get("label") != detection["label"]:
-                continue
-            if not isinstance(identity.get("fingerprint"), dict):
-                continue
-
-            distance = _distance(fingerprint, identity["fingerprint"])
-
-            if best is None or distance < best[0]:
-                best = (distance, identity)
-
-        if best and best[0] <= MATCH_THRESHOLD:
-            object_id = best[1]["object_id"]
-            match_distance = best[0]
+        # Strong MVP fallback: if this label has exactly one known identity,
+        # keep that ID even when the visual appearance changes significantly.
+        if len(candidates) == 1:
+            object_id = candidates[0]["object_id"]
+            match_distance = 0.0
         else:
-            object_id = f"object_{next_number:03d}"
-            next_number += 1
-            identities.append({
-                "object_id": object_id,
-                "label": detection["label"],
-                "fingerprint": fingerprint,
-            })
-            match_distance = None
+            best = None
+
+            for identity in candidates:
+                old_fingerprint = identity.get("fingerprint")
+
+                if not isinstance(old_fingerprint, dict):
+                    continue
+
+                distance = _distance(fingerprint, old_fingerprint)
+
+                if best is None or distance < best[0]:
+                    best = (distance, identity)
+
+            if best and best[0] <= MATCH_THRESHOLD:
+                object_id = best[1]["object_id"]
+                match_distance = best[0]
+            else:
+                object_id = f"object_{next_number:03d}"
+                next_number += 1
+                identities.append({
+                    "object_id": object_id,
+                    "label": label,
+                    "fingerprint": fingerprint,
+                })
+                match_distance = None
+
+        # Refresh the stored appearance when an existing identity is reused.
+        for identity in identities:
+            if identity.get("object_id") == object_id:
+                identity["fingerprint"] = fingerprint
+                break
 
         detection["object_id"] = object_id
         detection["identity_match"] = match_distance is not None
