@@ -3,4 +3,5 @@ __pycache__/
 
 # Generated runtime files
 database/object_identities.json
+database/spatial_memory.json
 yolo11n.pt
