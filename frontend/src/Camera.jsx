@@ -130,18 +130,27 @@ function Camera() {
     <section className="camera-panel">
       <div className="camera-header">
         <div>
-          <p className="camera-label">PHASE 5.4</p>
-          <h2>Camera & Memory Frame</h2>
+          <p className="camera-label">PHASE 5.5 · SPATIAL MEMORY</p>
+          <h2>Memory Vision</h2>
         </div>
-        <span className="camera-status">{status}</span>
+        <div className="camera-status-wrap">
+          <span className={`camera-mode ${facingMode === "environment" ? "rear" : "front"}`}>
+            {facingMode === "environment" ? "● REAR CAMERA" : "● FRONT CAMERA"}
+          </span>
+          <span className="camera-status">{status}</span>
+        </div>
       </div>
 
       <div className="video-frame">
+        <div className="camera-overlay">
+          <span>MEMORYOS VISION</span>
+          <span>{cameraActive ? "LIVE" : "READY"}</span>
+        </div>
         <video ref={videoRef} autoPlay playsInline muted />
         {!cameraActive && (
           <div className="camera-placeholder">
-            <span>📷</span>
-            <p>Camera preview will appear here</p>
+            <span>◉</span>
+            <p>Enable the rear camera to begin</p>
           </div>
         )}
       </div>
@@ -149,24 +158,25 @@ function Camera() {
       {error && <p className="camera-error">{error}</p>}
 
       <div className="camera-actions">
-        <button className="camera-button" onClick={() => enableCamera()}>
-          {cameraActive ? "Restart Camera" : "Enable Camera"}
+        <button className="camera-button secondary-button" onClick={() => enableCamera()}>
+          {cameraActive ? "Restart Rear Camera" : "Enable Rear Camera"}
         </button>
 
         <button
-          className="camera-button"
+          className="camera-button flip-button"
           onClick={switchCamera}
           disabled={!cameraActive}
+          title="Switch between rear and front camera"
         >
-          {facingMode === "environment" ? "Use Front Camera" : "Use Rear Camera"}
+          ↻ Flip Camera
         </button>
 
         <button
-          className="camera-button capture-button"
+          className="camera-button capture-button primary-capture"
           onClick={captureImage}
-          disabled={!streamRef.current}
+          disabled={!cameraActive}
         >
-          Capture Image
+          ◉ Capture Memory
         </button>
       </div>
 
