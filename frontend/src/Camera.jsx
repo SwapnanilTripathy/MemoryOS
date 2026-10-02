@@ -107,7 +107,7 @@ function Camera() {
     <section className="camera-panel">
       <div className="camera-header">
         <div>
-          <p className="camera-label">PHASE 4.2</p>
+          <p className="camera-label">PHASE 5.4</p>
           <h2>Camera & Memory Frame</h2>
         </div>
         <span className="camera-status">{status}</span>
@@ -212,6 +212,18 @@ function Camera() {
                         >
                           {isPreviouslySeen ? "Previously seen" : "New object"}
                         </span>
+                      </div>
+
+                      <div className="location-info">
+                        <span className="location-label">📍 Location</span>
+                        <strong>
+                          {detection.zone || "Unknown"}
+                        </strong>
+                        {detection.position && (
+                          <span className="location-coordinates">
+                            x: {detection.position.x} · y: {detection.position.y}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
