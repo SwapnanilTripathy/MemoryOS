@@ -43,7 +43,7 @@ def _get_zone(x, y):
 
 
 def record_positions(image, detections):
-    """Store normalized center positions and human-readable zones."""
+    """Attach identity + location information and store spatial observations."""
     memory = _load_memory()
     width, height = image.size
 
@@ -52,8 +52,9 @@ def record_positions(image, detections):
 
     for detection in detections:
         box = detection.get("box")
+        object_id = detection.get("object_id")
 
-        if not box or len(box) != 4:
+        if not box or len(box) != 4 or not object_id:
             continue
 
         x1, y1, x2, y2 = box
@@ -67,21 +68,26 @@ def record_positions(image, detections):
 
         zone = _get_zone(position["x"], position["y"])
 
+        # Keep flat fields on the detection for the current UI.
         detection["position"] = position
         detection["zone"] = zone
 
-        if detection.get("object_id"):
-            observation = {
-                "object_id": detection["object_id"],
+        observation = {
+            "object_id": object_id,
+            "identity": {
                 "label": detection.get("label"),
+                "identity_match": detection.get("identity_match", False),
+            },
+            "location": {
                 "position": position,
                 "zone": zone,
-            }
+            },
+        }
 
-            # Avoid storing identical consecutive observations.
-            # A changed position/zone is still stored as a new observation.
-            if not memory or memory[-1] != observation:
-                memory.append(observation)
+        # Avoid storing identical consecutive observations.
+        # A changed position or zone is still stored as a new observation.
+        if not memory or memory[-1] != observation:
+            memory.append(observation)
 
     _save_memory(memory)
     return detections
