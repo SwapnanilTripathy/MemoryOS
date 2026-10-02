@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "";
 
 function Camera() {
   const videoRef = useRef(null);
@@ -79,7 +79,7 @@ function Camera() {
     setUploadStatus("Sending image to backend...");
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/memory-frame`, {
+      const response = await fetch("/api/memory-frame", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
