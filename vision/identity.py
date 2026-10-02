@@ -77,6 +77,8 @@ def identify_objects(image, detections):
     identities = _load_identities()
     next_number = len(identities) + 1
 
+    used_ids_this_frame = set()
+
     for detection in detections:
         label = detection["label"]
 
@@ -102,6 +104,7 @@ def identify_objects(image, detections):
             identity
             for identity in identities
             if identity.get("label") == label
+            and identity.get("object_id") not in used_ids_this_frame
         ]
 
         # Strong MVP fallback: if this label has exactly one known identity,
@@ -142,6 +145,7 @@ def identify_objects(image, detections):
                 identity["fingerprint"] = fingerprint
                 break
 
+        used_ids_this_frame.add(object_id)
         detection["object_id"] = object_id
         detection["identity_match"] = match_distance is not None
 
