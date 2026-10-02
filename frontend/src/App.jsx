@@ -2,15 +2,44 @@ import Camera from "./Camera";
 
 function App() {
   return (
-    <main className="app">
-      <section className="hero">
-        <p className="eyebrow">PHYSICAL MEMORY SYSTEM</p>
-        <h1>MEMORYOS</h1>
-        <p className="tagline">Give an AI a physical memory.</p>
-        <p className="status">Phase 2.3 — Live camera prototype.</p>
+    <main className="app-shell">
+      <header className="topbar">
+        <div className="brand">
+          <div className="brand-mark">M</div>
+          <div>
+            <strong>MEMORYOS</strong>
+            <span>Physical memory for AI</span>
+          </div>
+        </div>
 
-        <Camera />
+        <div className="system-pill">
+          <span className="system-dot" />
+          Memory system online
+        </div>
+      </header>
+
+      <section className="welcome">
+        <div>
+          <p className="eyebrow">YOUR SPATIAL MEMORY</p>
+          <h1>See it. Remember it.</h1>
+          <p className="welcome-copy">
+            Capture a scene and MEMORYOS remembers what was there, where it was,
+            and when it changed.
+          </p>
+        </div>
+        <div className="phase-card">
+          <span>BUILD STATUS</span>
+          <strong>Spatial memory</strong>
+          <small>Identity · Location · Movement</small>
+        </div>
       </section>
+
+      <Camera />
+
+      <footer className="app-footer">
+        <span>MEMORYOS</span>
+        <span>Physical Memory System</span>
+      </footer>
     </main>
   );
 }
