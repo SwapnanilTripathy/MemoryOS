@@ -23,8 +23,27 @@ def _save_memory(memory):
     SPATIAL_FILE.write_text(json.dumps(memory, indent=2))
 
 
+def _get_zone(x, y):
+    """Convert normalized x/y coordinates into a human-readable 3x3 zone."""
+    if y < 1 / 3:
+        row = "top"
+    elif y < 2 / 3:
+        row = "middle"
+    else:
+        row = "bottom"
+
+    if x < 1 / 3:
+        column = "left"
+    elif x < 2 / 3:
+        column = "center"
+    else:
+        column = "right"
+
+    return f"{row} {column}"
+
+
 def record_positions(image, detections):
-    """Store normalized center positions for detected objects."""
+    """Store normalized center positions and human-readable zones."""
     memory = _load_memory()
     width, height = image.size
 
@@ -46,13 +65,17 @@ def record_positions(image, detections):
             "y": round(center_y / height, 4),
         }
 
+        zone = _get_zone(position["x"], position["y"])
+
         detection["position"] = position
+        detection["zone"] = zone
 
         if detection.get("object_id"):
             memory.append({
                 "object_id": detection["object_id"],
                 "label": detection.get("label"),
                 "position": position,
+                "zone": zone,
             })
 
     _save_memory(memory)
