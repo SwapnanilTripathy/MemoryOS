@@ -312,3 +312,39 @@ h1 {
     justify-items: end;
   }
 }
+
+
+.location-info {
+  display: grid;
+  gap: 3px;
+  min-width: 130px;
+  padding-left: 12px;
+  border-left: 1px solid #252a31;
+}
+
+.location-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.location-info strong {
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.location-coordinates {
+  font-size: 10px;
+  opacity: 0.45;
+}
+
+@media (max-width: 620px) {
+  .location-info {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 8px;
+    border-left: 0;
+    border-top: 1px solid #252a31;
+  }
+}
