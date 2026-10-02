@@ -409,3 +409,12 @@ h1 {
   .camera-status-wrap { align-items: flex-start; }
   .camera-button { margin-top: 10px; min-height: 50px; }
 }
+
+
+.movement-status {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
