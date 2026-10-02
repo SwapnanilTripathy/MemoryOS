@@ -7,6 +7,7 @@ from PIL import Image
 
 from vision.detector import detect_objects
 from vision.identity import identify_objects
+from vision.spatial import record_positions
 
 HOST = "0.0.0.0"
 PORT = 8000
@@ -54,10 +55,11 @@ class Handler(BaseHTTPRequestHandler):
 
             detections = detect_objects(image)
             detections = identify_objects(image, detections)
+            detections = record_positions(image, detections)
 
             self._send_json(200, {
                 "ok": True,
-                "message": "Memory frame received, analyzed, and identified.",
+                "message": "Memory frame received, analyzed, identified, and spatially stored.",
                 "imageReceived": True,
                 "detections": detections,
             })
