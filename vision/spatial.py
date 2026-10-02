@@ -7,6 +7,8 @@ SPATIAL_FILE = (
     / "spatial_memory.json"
 )
 
+MOVEMENT_THRESHOLD = 0.08
+
 
 def _load_memory():
     if not SPATIAL_FILE.exists():
@@ -42,8 +44,27 @@ def _get_zone(x, y):
     return f"{row} {column}"
 
 
+def _find_last_observation(memory, object_id):
+    """Return the most recent stored observation for an object."""
+    for observation in reversed(memory):
+        if observation.get("object_id") == object_id:
+            return observation
+    return None
+
+
+def _has_moved(previous_position, current_position):
+    """Detect meaningful movement while ignoring small camera/detection jitter."""
+    if not previous_position:
+        return False
+
+    dx = abs(current_position["x"] - previous_position["x"])
+    dy = abs(current_position["y"] - previous_position["y"])
+
+    return dx >= MOVEMENT_THRESHOLD or dy >= MOVEMENT_THRESHOLD
+
+
 def record_positions(image, detections):
-    """Attach identity + location information and store spatial observations."""
+    """Attach identity + location + movement information and store observations."""
     memory = _load_memory()
     width, height = image.size
 
@@ -67,10 +88,22 @@ def record_positions(image, detections):
         }
 
         zone = _get_zone(position["x"], position["y"])
+        previous = _find_last_observation(memory, object_id)
+        previous_location = previous.get("location", {}) if previous else {}
+        previous_position = previous_location.get("position")
 
-        # Keep flat fields on the detection for the current UI.
+        moved = _has_moved(previous_position, position)
+        previous_zone = previous_location.get("zone")
+
         detection["position"] = position
         detection["zone"] = zone
+        detection["moved"] = moved
+
+        if moved:
+            detection["movement"] = {
+                "from": previous_zone,
+                "to": zone,
+            }
 
         observation = {
             "object_id": object_id,
@@ -84,8 +117,14 @@ def record_positions(image, detections):
             },
         }
 
+        if moved:
+            observation["movement"] = {
+                "from": previous_zone,
+                "to": zone,
+            }
+
         # Avoid storing identical consecutive observations.
-        # A changed position or zone is still stored as a new observation.
+        # A changed position or zone is stored as a new observation.
         if not memory or memory[-1] != observation:
             memory.append(observation)
 
