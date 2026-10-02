@@ -71,12 +71,17 @@ def record_positions(image, detections):
         detection["zone"] = zone
 
         if detection.get("object_id"):
-            memory.append({
+            observation = {
                 "object_id": detection["object_id"],
                 "label": detection.get("label"),
                 "position": position,
                 "zone": zone,
-            })
+            }
+
+            # Avoid storing identical consecutive observations.
+            # A changed position/zone is still stored as a new observation.
+            if not memory or memory[-1] != observation:
+                memory.append(observation)
 
     _save_memory(memory)
     return detections
