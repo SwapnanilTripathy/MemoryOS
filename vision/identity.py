@@ -6,7 +6,7 @@ from PIL import Image
 
 IDENTITY_FILE = Path(__file__).resolve().parent.parent / "database" / "object_identities.json"
 HASH_SIZE = 16
-MATCH_THRESHOLD = 35
+MATCH_THRESHOLD = 55
 
 
 def _load_identities():
