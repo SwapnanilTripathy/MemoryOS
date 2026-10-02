@@ -7,7 +7,7 @@ SPATIAL_FILE = (
     / "spatial_memory.json"
 )
 
-MOVEMENT_THRESHOLD = 0.08
+MOVEMENT_THRESHOLD = 0.12
 
 
 def _load_memory():
@@ -52,15 +52,17 @@ def _find_last_observation(memory, object_id):
     return None
 
 
-def _has_moved(previous_position, current_position):
-    """Detect meaningful movement while ignoring small camera/detection jitter."""
-    if not previous_position:
+def _has_moved(previous_position, current_position, previous_zone, current_zone):
+    """Detect clear movement while filtering camera/detection jitter."""
+    if not previous_position or not previous_zone:
         return False
 
     dx = abs(current_position["x"] - previous_position["x"])
     dy = abs(current_position["y"] - previous_position["y"])
 
-    return dx >= MOVEMENT_THRESHOLD or dy >= MOVEMENT_THRESHOLD
+    # For the MVP, a movement event should represent a meaningful spatial
+    # change, not small bounding-box jitter inside the same zone.
+    return previous_zone != current_zone and (dx >= MOVEMENT_THRESHOLD or dy >= MOVEMENT_THRESHOLD)
 
 
 def record_positions(image, detections):
@@ -92,8 +94,8 @@ def record_positions(image, detections):
         previous_location = previous.get("location", {}) if previous else {}
         previous_position = previous_location.get("position")
 
-        moved = _has_moved(previous_position, position)
         previous_zone = previous_location.get("zone")
+        moved = _has_moved(previous_position, position, previous_zone, zone)
 
         detection["position"] = position
         detection["zone"] = zone
