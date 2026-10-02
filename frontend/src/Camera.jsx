@@ -11,6 +11,7 @@ function Camera() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
   const [detections, setDetections] = useState([]);
+  const [facingMode, setFacingMode] = useState("environment");
 
   useEffect(() => {
     return () => {
@@ -18,7 +19,7 @@ function Camera() {
     };
   }, []);
 
-  async function enableCamera() {
+  async function enableCamera(mode = facingMode) {
     setError("");
     setUploadStatus("");
     setStatus("Requesting camera access...");
@@ -30,14 +31,17 @@ function Camera() {
     }
 
     try {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: { facingMode: mode },
         audio: false,
       });
 
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
-      setStatus("Camera is live.");
+      setFacingMode(mode);
+      setStatus(mode === "environment" ? "Rear camera is live." : "Front camera is live.");
     } catch (err) {
       setStatus("Camera is off.");
       setError(
@@ -46,6 +50,11 @@ function Camera() {
           : "Could not access the camera. Check that a camera is connected."
       );
     }
+  }
+
+  async function switchCamera() {
+    const nextMode = facingMode === "environment" ? "user" : "environment";
+    await enableCamera(nextMode);
   }
 
   function captureImage() {
@@ -126,8 +135,16 @@ function Camera() {
       {error && <p className="camera-error">{error}</p>}
 
       <div className="camera-actions">
-        <button className="camera-button" onClick={enableCamera}>
-          Enable Camera
+        <button className="camera-button" onClick={() => enableCamera()}>
+          {streamRef.current ? "Restart Camera" : "Enable Camera"}
+        </button>
+
+        <button
+          className="camera-button"
+          onClick={switchCamera}
+          disabled={!streamRef.current}
+        >
+          {facingMode === "environment" ? "Use Front Camera" : "Use Rear Camera"}
         </button>
 
         <button
