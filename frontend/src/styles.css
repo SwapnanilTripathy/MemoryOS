@@ -348,3 +348,64 @@ h1 {
     border-top: 1px solid #252a31;
   }
 }
+
+
+/* MemoryOS camera UX */
+.camera-status-wrap {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.camera-mode {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid #303740;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+}
+
+.camera-mode.rear { opacity: 1; }
+.camera-mode.front { opacity: 0.6; }
+
+.camera-overlay {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  text-shadow: 0 1px 4px #000;
+}
+
+.secondary-button {
+  background: #f5f7fa;
+  color: #0b0d10;
+}
+
+.flip-button {
+  background: #1b2027;
+  color: #f5f7fa;
+  border: 1px solid #303740;
+}
+
+.primary-capture {
+  background: #f5f7fa;
+  color: #0b0d10;
+}
+
+@media (max-width: 620px) {
+  .camera-panel { padding: 14px; border-radius: 18px; }
+  .video-frame { aspect-ratio: 3 / 4; border-radius: 16px; }
+  .camera-status-wrap { align-items: flex-start; }
+  .camera-button { margin-top: 10px; min-height: 50px; }
+}
