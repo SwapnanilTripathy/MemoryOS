@@ -12,6 +12,7 @@ function Camera() {
   const [uploadStatus, setUploadStatus] = useState("");
   const [detections, setDetections] = useState([]);
   const [facingMode, setFacingMode] = useState("environment");
+  const [cameraActive, setCameraActive] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -33,16 +34,29 @@ function Camera() {
     try {
       streamRef.current?.getTracks().forEach((track) => track.stop());
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode },
-        audio: false,
-      });
+      let stream;
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: mode } },
+          audio: false,
+        });
+      } catch (exactError) {
+        // Some browsers do not support exact facingMode constraints.
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: mode },
+          audio: false,
+        });
+      }
 
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
+      await videoRef.current.play();
       setFacingMode(mode);
+      setCameraActive(true);
       setStatus(mode === "environment" ? "Rear camera is live." : "Front camera is live.");
     } catch (err) {
+      setCameraActive(false);
       setStatus("Camera is off.");
       setError(
         err?.name === "NotAllowedError"
@@ -61,7 +75,7 @@ function Camera() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (!video || !canvas || !streamRef.current) {
+    if (!video || !canvas || !cameraActive) {
       setError("Enable the camera before capturing an image.");
       return;
     }
@@ -124,7 +138,7 @@ function Camera() {
 
       <div className="video-frame">
         <video ref={videoRef} autoPlay playsInline muted />
-        {!streamRef.current && (
+        {!cameraActive && (
           <div className="camera-placeholder">
             <span>📷</span>
             <p>Camera preview will appear here</p>
@@ -136,13 +150,13 @@ function Camera() {
 
       <div className="camera-actions">
         <button className="camera-button" onClick={() => enableCamera()}>
-          {streamRef.current ? "Restart Camera" : "Enable Camera"}
+          {cameraActive ? "Restart Camera" : "Enable Camera"}
         </button>
 
         <button
           className="camera-button"
           onClick={switchCamera}
-          disabled={!streamRef.current}
+          disabled={!cameraActive}
         >
           {facingMode === "environment" ? "Use Front Camera" : "Use Rear Camera"}
         </button>
