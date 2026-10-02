@@ -130,20 +130,22 @@ function Camera() {
     <section className="camera-panel">
       <div className="camera-header">
         <div>
-          <p className="camera-label">PHASE 5.5 · SPATIAL MEMORY</p>
-          <h2>Memory Vision</h2>
+          <p className="camera-label">LIVE MEMORY</p>
+          <h2>Camera</h2>
         </div>
         <div className="camera-status-wrap">
-          <span className={`camera-mode ${facingMode === "environment" ? "rear" : "front"}`}>
-            {facingMode === "environment" ? "● REAR CAMERA" : "● FRONT CAMERA"}
-          </span>
-          <span className="camera-status">{status}</span>
+          <div className="camera-status-wrap">
+            <span className={`camera-mode ${facingMode === "environment" ? "rear" : "front"}`}>
+              {facingMode === "environment" ? "REAR" : "FRONT"}
+            </span>
+            <span className="camera-status">{status}</span>
+          </div>
         </div>
       </div>
 
       <div className="video-frame">
         <div className="camera-overlay">
-          <span>MEMORYOS VISION</span>
+          <span>MEMORYOS</span>
           <span>{cameraActive ? "LIVE" : "READY"}</span>
         </div>
         <video ref={videoRef} autoPlay playsInline muted />
@@ -156,10 +158,13 @@ function Camera() {
       </div>
 
       {error && <p className="camera-error">{error}</p>}
+      {cameraActive && !capturedImage && (
+        <p className="camera-hint">Point the camera at your space, then capture a frame.</p>
+      )}
 
       <div className="camera-actions">
         <button className="camera-button secondary-button" onClick={() => enableCamera()}>
-          {cameraActive ? "Restart Rear Camera" : "Enable Rear Camera"}
+          {cameraActive ? "Restart camera" : "Start camera"}
         </button>
 
         <button
@@ -168,7 +173,7 @@ function Camera() {
           disabled={!cameraActive}
           title="Switch between rear and front camera"
         >
-          ↻ Flip Camera
+          ↻ Switch camera
         </button>
 
         <button
@@ -176,7 +181,7 @@ function Camera() {
           onClick={captureImage}
           disabled={!cameraActive}
         >
-          ◉ Capture Memory
+          Capture frame
         </button>
       </div>
 
@@ -184,7 +189,15 @@ function Camera() {
 
       {capturedImage && (
         <div className="capture-preview">
-          <p className="capture-title">Captured Memory Frame</p>
+          <div className="section-heading">
+            <div>
+              <p className="section-kicker">MEMORY FRAME</p>
+              <h3>Captured scene</h3>
+            </div>
+            {detections.length > 0 && (
+              <span className="object-count">{detections.length} object{detections.length === 1 ? "" : "s"}</span>
+            )}
+          </div>
           <div className="annotated-image">
             <img src={capturedImage} alt="Captured camera frame" />
             {detections.map((detection, index) => {
@@ -217,14 +230,20 @@ function Camera() {
           </div>
 
           <button className="camera-button send-button" onClick={sendImageToBackend}>
-            Send to MemoryOS
+            Remember this frame
           </button>
 
           {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
 
           {detections.length > 0 && (
             <div className="detections-panel">
-              <p className="capture-title">Detected Objects & Identity</p>
+              <div className="section-heading">
+                <div>
+                  <p className="section-kicker">MEMORY</p>
+                  <h3>What I remember</h3>
+                </div>
+                <span className="object-count">{detections.length} found</span>
+              </div>
               <div className="detections-list">
                 {detections.map((detection, index) => {
                   const objectId = detection.object_id || "unassigned";
@@ -235,43 +254,39 @@ function Camera() {
                       className="detection-item"
                       key={`${objectId}-${index}`}
                     >
-                      <div className="detection-info">
-                        <strong>{detection.label}</strong>
-                        <span className="object-id">ID: {objectId}</span>
-                      </div>
-
-                      <div className="detection-meta">
-                        <span>
-                          {Math.round(detection.confidence * 100)}%
-                        </span>
-                        <span
-                          className={
-                            isPreviouslySeen
-                              ? "identity-status matched"
-                              : "identity-status new"
-                          }
-                        >
-                          {isPreviouslySeen ? "Previously seen" : "New object"}
-                        </span>
+                      <div className="detection-main">
+                        <div className="detection-title-row">
+                          <strong>{detection.label}</strong>
+                          <span className="confidence">
+                            {Math.round(detection.confidence * 100)}%
+                          </span>
+                        </div>
+                        <div className="detection-subrow">
+                          <span className="object-id">{objectId}</span>
+                          <span className={isPreviouslySeen ? "identity-status matched" : "identity-status new"}>
+                            {isPreviouslySeen ? "Remembered" : "New"}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="location-info">
-                        <span className="location-label">📍 Location</span>
-                        <strong>
-                          {detection.zone || "Unknown"}
-                        </strong>
+                        <span className="location-label">LOCATION</span>
+                        <strong>{detection.zone || "Unknown"}</strong>
                         {detection.position && (
                           <span className="location-coordinates">
-                            x: {detection.position.x} · y: {detection.position.y}
-                          </span>
-                        )}
-
-                        {detection.moved && detection.movement && (
-                          <span className="movement-status">
-                            ↔ MOVED: {detection.movement.from || "unknown"} → {detection.movement.to || detection.zone}
+                            {detection.position.x} · {detection.position.y}
                           </span>
                         )}
                       </div>
+
+                      {detection.moved && detection.movement && (
+                        <div className="movement-status">
+                          <span>Moved</span>
+                          <strong>
+                            {detection.movement.from || "unknown"} → {detection.movement.to || detection.zone}
+                          </strong>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
