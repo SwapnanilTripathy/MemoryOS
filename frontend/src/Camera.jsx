@@ -265,6 +265,12 @@ function Camera() {
                             x: {detection.position.x} · y: {detection.position.y}
                           </span>
                         )}
+
+                        {detection.moved && detection.movement && (
+                          <span className="movement-status">
+                            ↔ MOVED: {detection.movement.from || "unknown"} → {detection.movement.to || detection.zone}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
